@@ -34,6 +34,22 @@ const signup = async (req, res) => {
     }
 };
 
+const login = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user || !(await user.isValidPassword(password))) {
+            return errorResponse(res, 'Invalid login credentials', 401);
+        }
+
+        const token = await user.generateAuthToken();
+        successResponse(res, 'Logged in successfully', { user, token });
+    } catch (error) {
+        errorResponse(res, error.message);
+    }
+};
+
 module.exports = {
     signup,
+    login,
 };
