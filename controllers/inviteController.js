@@ -24,18 +24,7 @@ const generateMultipleCodes = async (req, res) => {
     }
 };
 
-const signupWithCode = async (req, res) => {
-    const { code, userId } = req.body;
-    try {
-        await validateAndUseCode(code, userId);
-        successResponse(res, 'User registered successfully.');
-    } catch (error) {
-        errorResponse(res, error.message);
-    }
-};
-
 module.exports = {
     generateCode,
     generateMultipleCodes,
-    signupWithCode,
 };
