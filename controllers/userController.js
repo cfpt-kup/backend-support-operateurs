@@ -135,4 +135,30 @@ const getUserById = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, logout, getProfile, getAllUsers, getUserById };
+const updateUserProfile = async (req, res) => {
+    const { firstname, lastname, email, password } = req.body;
+
+    try {
+        const user = req.user;
+
+        if (firstname) user.firstname = firstname;
+        if (lastname) user.lastname = lastname;
+        if (email) user.email = email;
+        if (password) user.password = password;
+
+        await user.save();
+
+        successResponse(res, 'User profile updated successfully.', {
+            user: {
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email,
+                code_used: user.code_used
+            }
+        });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { signup, login, logout, getProfile, getAllUsers, getUserById, updateUserProfile };
