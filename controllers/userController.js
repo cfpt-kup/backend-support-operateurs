@@ -109,4 +109,30 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, logout, getProfile };
+// Fetch all users
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({}, 'firstname lastname email code_used'); // Fetch all users with specific fields
+        successResponse(res, 'All users fetched successfully.', { users });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+// Fetch user by ID
+const getUserById = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findById(userId, 'firstname lastname email code_used'); // Fetch user by ID with specific fields
+
+        if (!user) {
+            return errorResponse(res, 'User not found.', 404);
+        }
+
+        successResponse(res, 'User fetched successfully.', { user });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { signup, login, logout, getProfile, getAllUsers, getUserById };
