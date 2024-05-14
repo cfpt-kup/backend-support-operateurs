@@ -161,4 +161,17 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, logout, getProfile, getAllUsers, getUserById, updateUserProfile };
+const deleteUserProfile = async (req, res) => {
+    try {
+        const user = req.user;
+
+        await User.findByIdAndDelete(user._id);
+
+        successResponse(res, 'User profile deleted successfully.');
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+
+module.exports = { signup, login, logout, getProfile, getAllUsers, getUserById, updateUserProfile, deleteUserProfile };

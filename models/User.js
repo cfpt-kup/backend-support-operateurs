@@ -26,10 +26,10 @@ userSchema.pre('save', async function (next) {
 
 userSchema.methods.generateAuthToken = async function (deviceId) {
     const user = this;
-    const token = jwt.sign({ _id: user._id.toString(), deviceId }, process.env.JWT_SECRET, { expiresIn: '1m' }); // 1 minute for testing
-    const expiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 minute from now in UTC
-    console.log(`Token generated at (UTC): ${new Date().toISOString()}`);
-    console.log(`Token expires at (UTC): ${expiresAt.toISOString()}`);
+    const token = jwt.sign({ _id: user._id.toString(), deviceId }, process.env.JWT_SECRET, { expiresIn: '10m' }); // 1 minute for testing
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now in UTC
+    //console.log(`Token generated at (UTC): ${new Date().toISOString()}`);
+    //console.log(`Token expires at (UTC): ${expiresAt.toISOString()}`);
     user.tokens = user.tokens.concat({ token, expiresAt }); // Add the token and expiration date
     await user.save(); // Save the user with the new token and expiration date
 
