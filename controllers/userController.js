@@ -93,4 +93,20 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, logout };
+const getProfile = async (req, res) => {
+    try {
+        const user = req.user;
+        successResponse(res, 'User profile fetched successfully.', {
+            user: {
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email,
+                code_used: user.code_used
+            }
+        });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { signup, login, logout, getProfile };
