@@ -1,12 +1,6 @@
 const User = require('../models/User');
 const InvitationCode = require('../models/InvitationCode');
 const { successResponse, errorResponse } = require('../views/responses');
-const jwt = require('jsonwebtoken');
-
-// Helper function to generate JWT
-function generateToken(userId, deviceId) {
-    return jwt.sign({ _id: userId.toString(), deviceId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-}
 
 const signup = async (req, res) => {
     const { firstname, lastname, email, password, code_used, deviceId } = req.body;
@@ -22,19 +16,19 @@ const signup = async (req, res) => {
         }
 
         const newUser = new User({ firstname, lastname, email, password, code_used: invitationCode.code });
-        const token = generateToken(newUser._id, deviceId);
-        newUser.tokens.push({ token, deviceId });
-
+        const { token, expiresAt } = await newUser.generateAuthToken(deviceId); // Generate token and get expiresAt
         await newUser.save();
+
         invitationCode.used = true;
         invitationCode.userId = newUser._id;
         invitationCode.usedAt = new Date();
         await invitationCode.save();
 
+        // Convert expiresAt to local time for display
+        const expiresAtLocal = new Date(expiresAt).toLocaleString('en-CH', { timeZone: 'Europe/Zurich' });
+
         successResponse(res, 'User signed up and logged in successfully.', {
-            user: {
-                firstname, lastname, email, code_used, token
-            }
+            user: { firstname, lastname, email, code_used, token, expiresAt: expiresAtLocal }
         });
     } catch (error) {
         errorResponse(res, error.message, 500);
@@ -50,18 +44,28 @@ const login = async (req, res) => {
             return errorResponse(res, 'Invalid login credentials', 401);
         }
 
-        user.tokens = user.tokens.filter(t => t.deviceId !== deviceId); // Remove old tokens for this device
-        const token = generateToken(user._id, deviceId);
-        user.tokens.push({ token, deviceId });
+        // Check for an existing valid token
+        const currentTime = new Date();
+        const validToken = user.tokens.find(t => t.deviceId === deviceId && t.expiresAt > currentTime);
+
+        if (validToken) {
+            // Convert expiresAt to local time for display
+            const expiresAtLocal = new Date(validToken.expiresAt).toLocaleString('en-CH', { timeZone: 'Europe/Zurich' });
+
+            return successResponse(res, 'Logged in successfully with existing token.', {
+                user: { firstname: user.firstname, lastname: user.lastname, email: user.email, token: validToken.token, expiresAt: expiresAtLocal }
+            });
+        }
+
+        // Generate a new token if no valid token is found
+        const { token, expiresAt } = await user.generateAuthToken(deviceId);
         await user.save();
 
-        successResponse(res, 'Logged in successfully', {
-            user: {
-                firstname: user.firstname,
-                lastname: user.lastname,
-                email: user.email,
-                token
-            }
+        // Convert expiresAt to local time for display
+        const expiresAtLocal = new Date(expiresAt).toLocaleString('en-CH', { timeZone: 'Europe/Zurich' });
+
+        successResponse(res, 'Logged in successfully.', {
+            user: { firstname: user.firstname, lastname: user.lastname, email: user.email, token, expiresAt: expiresAtLocal }
         });
     } catch (error) {
         errorResponse(res, error.message, 500);
@@ -72,21 +76,21 @@ const logout = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const originalTokenCount = user.tokens.length;
-        user.tokens = user.tokens.filter(t => t.token !== req.token);
+        const currentTime = new Date();
+        console.log(`Current time (UTC): ${currentTime.toISOString()}`);
+
+        // Filter out the token being logged out and any expired tokens
+        user.tokens = user.tokens.filter(t => t.token !== req.token && t.expiresAt > currentTime);
 
         if (user.tokens.length === originalTokenCount) {
-            return errorResponse(res, 'Token not found or already removed', 404);
+            return errorResponse(res, 'Token not found or already removed.', 404);
         }
 
         await user.save();
-        successResponse(res, 'Disconnected successfully');
+        successResponse(res, 'Disconnected successfully and expired tokens removed.');
     } catch (error) {
         errorResponse(res, error.message, 500);
     }
 };
 
-module.exports = {
-    signup,
-    login,
-    logout,
-};
+module.exports = { signup, login, logout };
