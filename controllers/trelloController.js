@@ -31,4 +31,14 @@ const moveCard = async (req, res) => {
     }
 };
 
-module.exports = { getTrelloColumnsWithCards, moveCard };
+const getCardById = async (req, res) => {
+    const { cardId } = req.params;
+    try {
+        const card = await trelloService.getCardById(cardId);
+        successResponse(res, 'Card fetched successfully.', { card });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { getTrelloColumnsWithCards, moveCard, getCardById };
