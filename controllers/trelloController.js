@@ -41,4 +41,14 @@ const getCardById = async (req, res) => {
     }
 };
 
-module.exports = { getTrelloColumnsWithCards, moveCard, getCardById };
+const addCommentToCard = async (req, res) => {
+    const { cardId, text } = req.body;
+    try {
+        const comment = await trelloService.addCommentToCard(cardId, text);
+        successResponse(res, 'Comment added successfully.', { comment });
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { getTrelloColumnsWithCards, moveCard, getCardById, addCommentToCard };

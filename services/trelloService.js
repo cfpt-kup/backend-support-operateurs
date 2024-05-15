@@ -46,6 +46,17 @@ const trelloService = {
         } catch (error) {
             throw new Error(`Failed to fetch card: ${error.message}`);
         }
+    },
+
+    addCommentToCard: async (cardId, text) => {
+        const apiKey = process.env.TRELLO_API_KEY;
+        const token = process.env.TRELLO_TOKEN;
+        try {
+            const response = await axios.post(`https://api.trello.com/1/cards/${cardId}/actions/comments?key=${apiKey}&token=${token}`, { text });
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to add comment to card: ${error.message}`);
+        }
     }
 };
 
