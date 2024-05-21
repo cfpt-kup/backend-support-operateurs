@@ -1,4 +1,5 @@
 const trelloService = require('../services/trelloService');
+const userService = require('../services/userService');
 const { successResponse, errorResponse } = require('../views/responses');
 
 const VALID_LIST_IDS = [
@@ -43,9 +44,22 @@ const getCardById = async (req, res) => {
 
 const addCommentToCard = async (req, res) => {
     const { cardId, text } = req.body;
+    const userId = req.user.id; // Assuming the user ID is stored in req.user
+
     try {
         const comment = await trelloService.addCommentToCard(cardId, text);
-        successResponse(res, 'Comment added successfully.', { comment });
+        const user = await userService.getUserDetails(userId);
+
+        // Add user details to the comment response
+        const commentWithUserDetails = {
+            ...comment,
+            memberCreator: {
+                firstname: user.firstname,
+                lastname: user.lastname,
+            },
+        };
+
+        successResponse(res, 'Comment added successfully.', { comment: commentWithUserDetails });
     } catch (error) {
         errorResponse(res, error.message, 500);
     }
@@ -82,4 +96,12 @@ const deleteCommentOnCard = async (req, res) => {
     }
 };
 
-module.exports = { getTrelloColumnsWithCards, moveCard, getCardById, addCommentToCard, getCardComments, updateCommentOnCard, deleteCommentOnCard };
+module.exports = {
+    getTrelloColumnsWithCards,
+    moveCard,
+    getCardById,
+    addCommentToCard,
+    getCardComments,
+    updateCommentOnCard,
+    deleteCommentOnCard
+};
