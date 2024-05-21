@@ -72,4 +72,14 @@ const updateCommentOnCard = async (req, res) => {
     }
 };
 
-module.exports = { getTrelloColumnsWithCards, moveCard, getCardById, addCommentToCard, getCardComments, updateCommentOnCard };
+const deleteCommentOnCard = async (req, res) => {
+    const { commentId } = req.params;
+    try {
+        await trelloService.deleteCommentOnCard(commentId);
+        successResponse(res, 'Comment deleted successfully.');
+    } catch (error) {
+        errorResponse(res, error.message, 500);
+    }
+};
+
+module.exports = { getTrelloColumnsWithCards, moveCard, getCardById, addCommentToCard, getCardComments, updateCommentOnCard, deleteCommentOnCard };

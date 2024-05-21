@@ -85,6 +85,16 @@ const trelloService = {
         } catch (error) {
             throw new Error(`Failed to update comment: ${error.message}`);
         }
+    },
+
+    deleteCommentOnCard: async (commentId) => {
+        const apiKey = process.env.TRELLO_API_KEY;
+        const token = process.env.TRELLO_TOKEN;
+        try {
+            await axios.delete(`https://api.trello.com/1/actions/${commentId}?key=${apiKey}&token=${token}`);
+        } catch (error) {
+            throw new Error(`Failed to delete comment: ${error.message}`);
+        }
     }
 };
 
