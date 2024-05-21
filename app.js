@@ -4,10 +4,14 @@ const connectDB = require('./config/database');
 const inviteRoutes = require('./routes/inviteRoutes');
 const userRoutes = require('./routes/userRoutes');
 const trelloRoutes = require('./routes/trelloRoutes');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 app.use(bodyParser.json());
+
+// Enable CORS
+app.use(cors()); // Add this line
 
 // Connect to the database
 connectDB();
